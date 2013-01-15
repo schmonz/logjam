@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-require 'test_depends.pl' if -x 'test_depends.pl';
+BEGIN { require 'test_depends.pl' if -x 'test_depends.pl' }
 
 use Test::More tests => 7;
 use Test::Exception;

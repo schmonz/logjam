@@ -1,3 +1,4 @@
-Oct 31 01:23:45 amitsclx ApplicationLog: hello
-Oct 31 01:23:46 amitsclx ApplicationLog: consuming vast quantities of data
-Oct 31 01:23:48 amitsclx ApplicationLog: goodbye
+Oct 31 01:23:45 amitsclx OpaqueImportantThing: hello
+Oct 31 01:23:46 amitsclx OpaqueImportantThing: consuming vast quantities of data
+Oct 31 01:23:47 amitsclx SomeoneElse: blah blah blah
+Oct 31 01:23:48 amitsclx OpaqueImportantThing: goodbye

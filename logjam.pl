@@ -7,6 +7,8 @@ package logjam;
 use warnings;
 use strict;
 
+use DBI;
+
 sub parse_log_line {
 	my ($line) = @_;
 	my $NUM_FIELDS = 6;
@@ -32,6 +34,45 @@ sub parse_log_line {
 		if '' eq $named_fields{message};
 
 	return %named_fields;
+}
+
+sub connect_to_database {
+	my ($database) = @_;
+
+	die "no file specified" unless defined $database;
+	return DBI->connect("dbi:SQLite:dbname=$database");
+}
+
+sub initialize_table {
+	my ($dbh) = @_;
+
+	die "no handle specified" unless defined $dbh;
+
+	$dbh->do(
+		'CREATE TABLE logs (
+			month		VARCHAR NOT NULL,
+			day		VARCHAR NOT NULL,
+			time		VARCHAR NOT NULL,
+			host		VARCHAR NOT NULL,
+			tag		VARCHAR NOT NULL,
+			message		VARCHAR NOT NULL
+		);',
+	);
+}
+
+sub store_log_line {
+	my ($dbh, $parsed_log_line) = @_;
+
+	die "no line specified" unless $parsed_log_line;
+	die "no parsed line specified" unless 'HASH' eq ref($parsed_log_line);
+
+	my $statement = 'INSERT INTO logs ('
+		. join(',', keys %$parsed_log_line)
+		. ') VALUES ('
+		. join(',', map('?', keys %$parsed_log_line))
+		. ')';
+	my $sth = $dbh->prepare($statement);
+	$sth->execute(map { $parsed_log_line->{$_} } keys %$parsed_log_line);
 }
 
 sub main {

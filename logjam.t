@@ -2,7 +2,7 @@
 
 BEGIN { require 'test_depends.pl' if -x 'test_depends.pl' }
 
-use Test::More tests => 7;
+use Test::More tests => 14;
 use Test::Exception;
 
 use warnings;
@@ -61,9 +61,42 @@ sub test_parse_log_line {
 	);
 }
 
+sub test_connect_to_database {
+	my ($database) = @_;
+	my $unit = \&logjam::connect_to_database;
+
+	throws_ok { $unit->(undef) }
+		qr/no file specified/,
+		q{reject null filename};
+
+	my $dbh;
+	unlink $database;
+	lives_ok { $dbh = $unit->($database) }
+		q{accept non-null filename};
+
+	return $dbh;
+}
+
+sub test_initialize_table {
+	my ($dbh) = @_;
+	my $unit = \&logjam::initialize_table;
+
+	throws_ok { $unit->(undef) }
+		qr/no handle specified/,
+		q{reject null database handle};
+
+	lives_ok { $unit->($dbh) }
+		q{accept non-null database-handle};
+
+	# XXX we haven't proven the table is really there, or looks right
+	# XXX we haven't proven we bail if the table is already there
+}
+
 sub test_store_log_line {
+	my ($dbh) = @_;
 	my $unit = \&logjam::store_log_line;
 
+	# we already unit-tested parsing; integration-test later, but not here
 	my %good_input = (
 		month	=> 'one',
 		day	=> 'two',
@@ -73,21 +106,25 @@ sub test_store_log_line {
 		message	=> 'six seven eight  nine ten ELEVEN 12',
 	);
 
-	# use case: got a bunch of log files to analyze now
-	#
-	# we did the parsing, so we know we have enough fields, etc.
-	# if we can't connect to database, die
-	# if the table doesn't exist, create it
-	# if we've already written this log line, die? nope, not the use case
-	# if the table exists, write the line
-	# if the line didn't write, die
-	# if the line wrote, prove it
-	# if it isn't actually there, die
+	throws_ok { $unit->($dbh, undef) }
+		qr/no line specified/,
+		q{reject null input};
+
+	throws_ok { $unit->($dbh, 'just a scalar') }
+		qr/no parsed line specified/,
+		q{reject string input};
+
+	lives_ok { $unit->($dbh, \%good_input) }
+		q{accept parsed input};
+
+	# XXX we haven't proven the line is really there
 }
 
 sub main() {
 	test_parse_log_line();
-	test_store_log_line();
+	my $dbh = test_connect_to_database('some_file_name');
+	test_initialize_table($dbh);
+	test_store_log_line($dbh);
 }
 
 main();

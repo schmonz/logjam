@@ -1,5 +1,7 @@
 #!/usr/bin/env perl
 
+BEGIN { require 'code_depends.pl' if -x 'code_depends.pl' }
+
 package logjam;
 
 use warnings;

@@ -8,7 +8,7 @@ use Test::Exception;
 use warnings;
 use strict;
 
-require_ok('logjam.pl');
+require_ok('./logjam.pl');
 
 sub test_parse_log_line {
 	my $unit = \&logjam::parse_log_line;
